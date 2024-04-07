@@ -1,0 +1,95 @@
+---
+import { getSession } from "auth-astro/server";
+import { db, WhiteList, eq } from "astro:db";
+
+// Get session
+const session = await getSession(Astro.request);
+console.log("la sesion esta: ", session);
+
+// Get user email from session
+const userEmail = session?.user?.email || null;
+console.log("Correo electrónico de la sesión:", userEmail);
+
+// Retrieve user from whitelist
+const whiteList = userEmail
+	? await db
+			.select({ nombre: WhiteList.user, mail: WhiteList.mail })
+			.from(WhiteList)
+			.where(eq(WhiteList.mail, userEmail))
+	: null;
+
+const pages = [
+	{ name: "home", href: "/" },
+	{ name: "oficinas", href: "/oficinas", disabled: true },
+	{
+		name: "internos de oficinas",
+		href: "/internos",
+		disabled: true,
+		soonDate: "Próximamente",
+	},
+	{ name: "login", href: "#", hidden: !(session === null) },
+	{ name: "logout", href: "#", hidden: session === null },
+].map((page) => ({
+	...page,
+	active: Astro.url.pathname === page.href,
+}));
+---
+
+<header class="mb-10 h-16 max-w-[100vw] lg:h-24 text-white">
+	<nav
+		class="group flex h-full w-full items-center justify-between px-10 lg:justify-center"
+	>
+		{
+			pages.map(
+				({ disabled, name, href, active, soonDate, hidden }, key) => (
+					<>
+						<a
+							href={href}
+							class:list={[
+								"nav-item hidden relative h-full select-none flex-col items-center justify-center gap-1 text-center text-xl uppercase  lg:flex lg:px-7 xl:px-10",
+								{ "pointer-events-none": disabled },
+								{ "current-page text-accent": active },
+								{ "text-cyan-500": !active },
+							]}
+							style={{ display: hidden ? "none" : "" }}
+							id={`${name}`}
+						>
+							<span class="z-10">{name}</span>
+							{disabled ? (
+								<span class="absolute mt-10 -skew-x-6 text-xs text-accent">
+									{soonDate}
+								</span>
+							) : (
+								<div class="background absolute -z-10 h-full w-full" />
+							)}
+						</a>
+
+						{key === 0 && (
+							<div class:list={"hidden w-64 lg:block"} />
+						)}
+					</>
+				)
+			)
+		}
+	</nav>
+</header>
+
+<script>
+	const { signIn, signOut } = await import("auth-astro/client");
+	const $login = document.querySelector("#login") as HTMLButtonElement | null;
+	const $logout = document.querySelector(
+		"#logout"
+	) as HTMLButtonElement | null;
+
+	if ($login) {
+		$login.onclick = () => {
+			signIn("google");
+			const $span = $login.querySelector("span");
+			if ($span) $span.innerText = "Iniciando sesión...";
+		};
+	}
+
+	if ($logout) {
+		$logout.onclick = () => signOut();
+	}
+</script>
