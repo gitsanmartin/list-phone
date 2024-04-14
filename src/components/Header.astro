@@ -1,34 +1,28 @@
 ---
 import { getSession } from "auth-astro/server";
-import { db, WhiteList, eq } from "astro:db";
+
+// const { session } = Astro.props;
 
 // Get session
 const session = await getSession(Astro.request);
-console.log("la sesion esta: ", session);
-
-// Get user email from session
-const userEmail = session?.user?.email || null;
-console.log("Correo electrónico de la sesión:", userEmail);
-
-// Retrieve user from whitelist
-const whiteList = userEmail
-	? await db
-			.select({ nombre: WhiteList.user, mail: WhiteList.mail })
-			.from(WhiteList)
-			.where(eq(WhiteList.mail, userEmail))
-	: null;
 
 const pages = [
 	{ name: "home", href: "/" },
 	{ name: "oficinas", href: "/oficinas", disabled: true },
-	{
-		name: "internos de oficinas",
-		href: "/internos",
-		disabled: true,
-		soonDate: "Próximamente",
-	},
+	// {
+	// 	name: "lista blanca",
+	// 	href: "/whitelist",
+	// 	disabled: true,
+	// 	soonDate: "luego..",
+	// },
+	// {
+	// 	name: "internos de oficinas",
+	// 	href: "/internos",
+	// 	disabled: true,
+	// 	soonDate: "Próximamente",
+	// },
 	{ name: "login", href: "#", hidden: !(session === null) },
-	{ name: "logout", href: "#", hidden: session === null },
+	{ name: "logout", href: "#", hidden: session === null, special: true },
 ].map((page) => ({
 	...page,
 	active: Astro.url.pathname === page.href,
@@ -41,7 +35,10 @@ const pages = [
 	>
 		{
 			pages.map(
-				({ disabled, name, href, active, soonDate, hidden }, key) => (
+				(
+					{ disabled, name, href, active, soonDate, hidden, special },
+					key
+				) => (
 					<>
 						<a
 							href={href}
@@ -50,6 +47,7 @@ const pages = [
 								{ "pointer-events-none": disabled },
 								{ "current-page text-accent": active },
 								{ "text-cyan-500": !active },
+								{ "text-rose-500": special },
 							]}
 							style={{ display: hidden ? "none" : "" }}
 							id={`${name}`}
@@ -92,4 +90,20 @@ const pages = [
 	if ($logout) {
 		$logout.onclick = () => signOut();
 	}
+
+	// async function consultarWhiteList() {
+	// 	// Obtener el correo electrónico del usuario de la sesión actual
+	// 	const userEmail = session?.user?.email || null;
+
+	// 	// Ejecutar la consulta de la lista blanca
+	// 	const whiteList = userEmail
+	// 		? await db
+	// 				.select({ nombre: WhiteList.user, mail: WhiteList.mail })
+	// 				.from(WhiteList)
+	// 				.where(eq(WhiteList.mail, userEmail))
+	// 		: null;
+
+	// 	// Verificar si el correo electrónico del usuario está en la lista blanca
+	// 	return userEmail === whiteList?.at(0)?.mail;
+	// }
 </script>
