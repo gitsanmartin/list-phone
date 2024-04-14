@@ -1,0 +1,40 @@
+---
+import { Secretarias, db } from "astro:db";
+interface Secretaria {
+	id: number;
+	oficina: string;
+}
+
+import ItenInterno from "@/components/ItemInterno.astro";
+const secretarias: Secretaria[] = await db.select().from(Secretarias);
+---
+
+<section class="text-white mt-10">
+	<div class="flex gap-5">
+		<div>
+			<div class="text-xl bg-slate-800 p-2 mb-2">(Cod.) Oficina</div>
+			{
+				secretarias.map(({ id, oficina }, index) => (
+					<div
+						class:list={`my-2 ${!(index % 2 === 0) ? "bg-gray-900" : ""}`}
+					>
+						<span class="bg-teal-600 rounded-lg px-2">{id}</span>
+						<span class="capitalize pl-2">{oficina}</span>
+					</div>
+				))
+			}
+		</div>
+		<div>
+			<div class="text-xl bg-slate-800 p-2 mb-2">Teléfonos Internos</div>
+			{
+				secretarias.map(({ id: numOficina }, index) => (
+					<div
+						class:list={`flex gap-2 my-2 ${!(index % 2 === 0) ? "bg-gray-900" : ""}`}
+					>
+						<ItenInterno oficina={numOficina} />
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
