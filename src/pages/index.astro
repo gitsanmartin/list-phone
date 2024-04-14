@@ -1,9 +1,51 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
+import Tabla from "@/components/Tabla.astro";
+import { getSession } from "auth-astro/server";
+import { db, WhiteList, eq } from "astro:db";
+
+// Get session
+const session = await getSession(Astro.request);
+
+// Obtener el correo electrónico del usuario de la sesión actual
+const userEmail = session?.user?.email || null;
+
+// Ejecutar la consulta de la lista blanca
+const whiteList = userEmail
+	? await db
+			.select({ nombre: WhiteList.user, mail: WhiteList.mail })
+			.from(WhiteList)
+			.where(eq(WhiteList.mail, userEmail))
+	: null;
+
+// Verificar si el correo electrónico del usuario está en la lista blanca
+// console.log("desde el index: ");
+// console.log("userEmail:", userEmail);
+// console.log("la lista blanca: ", whiteList);
+// return userEmail === whiteList?.at(0)?.mail;
 ---
 
 <Layout title="Web de teléfonos internos MBB">
 	<main>
-		<p>cosas del main</p>
+		{
+			userEmail && whiteList?.at(0)?.mail ? (
+				<>
+					<label for="search">
+						<span class="text-white">Busqueda</span>
+						<input class="text-black" type="text" name="search" />
+					</label>
+					<Tabla />
+				</>
+			) : (
+				<p>no hay nada para las personas fuera de la lista</p>
+			)
+		}
+
+		<div class="text-white">
+			<p>- falta poder agregar ABM oficinas</p>
+			<p>- falta poder agregar ABM internos de las oficinas</p>
+			<p>- hacer filtro de busqueda</p>
+			<p>- preparar documento para imprimir</p>
+		</div>
 	</main>
 </Layout>
