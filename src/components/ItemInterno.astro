@@ -1,0 +1,32 @@
+---
+interface Props {
+	oficina: number;
+}
+import { db, Internos, eq } from "astro:db";
+
+const { oficina } = Astro.props;
+const internos = await db
+	.select()
+	.from(Internos)
+	.where(eq(Internos.numOficina, oficina));
+
+// console.log(internos)
+
+// const searchInternos = internos.map((interno) => ({
+// 	...interno,
+// 	searchTerms: `${interno.id}`
+// }));
+---
+
+{
+	internos.length > 0 ? (
+		internos.map(({ id: telInterno, numOficina, persona }) => (
+			<div class="mr-2 px-2 bg-sky-800 rounded-md">
+				{persona == "" ? "" : `${persona}: `}
+				{telInterno}
+			</div>
+		))
+	) : (
+		<div>&nbsp;</div>
+	)
+}
